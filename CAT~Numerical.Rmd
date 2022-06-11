@@ -1,0 +1,78 @@
+---
+title: "logistic regression"
+author: "Drs Kand J"
+date: '2022-06-11'
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tigerstats)
+library(Sleuth2)
+
+donnerData = case2001
+```
+
+
+
+
+```{r}
+
+logRegModel = glm(Status~Age + Sex, family = binomial, data=donnerData)
+Age = donnerData$Age
+sexCoded = ifelse(donnerData$Sex=='Male',1,0)
+
+logRegModel$coefficients
+```
+## (Intercept)         Age   SexFemale 
+##  1.63312031 -0.07820407  1.59729350
+
+```{r}
+
+eta = logRegModel$coefficients[1]+ logRegModel$coefficients[2]*Age + logRegModel$coefficients[2]*sexCoded
+
+summary(logRegModel)
+```
+## 
+## Call:
+## glm(formula = Status ~ Age + Sex, family = binomial, data = donnerData)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.7445  -1.0441  -0.3029   0.8877   2.0472  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)  1.63312    1.11018   1.471   0.1413  
+## Age         -0.07820    0.03728  -2.097   0.0359 *
+## SexFemale    1.59729    0.75547   2.114   0.0345 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 61.827  on 44  degrees of freedom
+## Residual deviance: 51.256  on 42  degrees of freedom
+## AIC: 57.256
+## 
+## Number of Fisher Scoring iterations: 4
+
+```{r}
+
+probIndivid = function(age, sex){
+  pSurviv = logRegModel$coefficients[1]+ logRegModel$coefficients[2]*age + logRegModel$coefficients[2]*sex
+  return(exp(pSurviv)/(1+exp(pSurviv)))
+}
+
+prob = function(eta){
+  prob = exp(eta)/(1+exp(eta)) 
+}
+```
+
+## prob plot
+```{r}
+etaWomen = logRegModel$coefficients[1]+ logRegModel$coefficients[2]*Age + logRegModel$coefficients[2]*0
+etaMen = logRegModel$coefficients[1]+ logRegModel$coefficients[2]*Age + logRegModel$coefficients[2]*1
+plot(eta, prob(etaWomen),type='p')
+points(eta, prob(etaMen), type='p', col='red')
+```
